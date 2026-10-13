@@ -36,13 +36,13 @@ from databricks.sdk.credentials_provider import (
 )
 from databricks.sdk.oidc import IdToken, IdTokenSource
 from dotenv import load_dotenv
-from http.client import HTTPConnection
-import six
+#from http.client import HTTPConnection
+#import six
 
 logger = logging.getLogger(__name__)
 
-HTTPConnection.debuglevel = 1
-six.moves.http_client.HTTPConnection.debuglevel = 1
+#HTTPConnection.debuglevel = 1
+#six.moves.http_client.HTTPConnection.debuglevel = 1
 
 # Refresh the external token this many seconds before it expires.
 _EXPIRY_SKEW_SECONDS = 60
