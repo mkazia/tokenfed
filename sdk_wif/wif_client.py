@@ -39,13 +39,14 @@ from databricks.sdk.credentials_provider import (
 )
 from databricks.sdk.oidc import IdToken, IdTokenSource
 from dotenv import load_dotenv
-from http.client import HTTPConnection
-import six
+#from http.client import HTTPConnection
+#import six
 
 logger = logging.getLogger(__name__)
+#logger.setLevel(logging.DEBUG)
 
-HTTPConnection.debuglevel = 1
-six.moves.http_client.HTTPConnection.debuglevel = 1
+#HTTPConnection.debuglevel = 1
+#six.moves.http_client.HTTPConnection.debuglevel = 1
 
 # Refresh the external token this many seconds before it expires.
 _EXPIRY_SKEW_SECONDS = 60
@@ -127,13 +128,14 @@ def external_wif_strategy(id_token_source: IdTokenSource):
 
     @credentials_strategy("external-client-credentials-wif", ["host"])
     def strategy(cfg):
-        if cfg.scopes:
-            logger.debug("Requesting Databricks token with scopes: %s", cfg.get_scopes_as_string())
-        else:
-            logger.warning(
-                "No scopes configured; requesting Databricks token with the default %r scope",
-                cfg.get_scopes_as_string(),
-            )
+        #if cfg.scopes:
+        #    logger.debug("Requesting Databricks token with scopes: %s", cfg.get_scopes_as_string())
+        #else:
+        #    logger.warning(
+        #        "No scopes configured; requesting Databricks token with the default %r scope",
+        #        cfg.get_scopes_as_string(),
+        #    )
+
         # oidc_credentials_provider swallows token-source errors and returns
         # None ("not configured"). Fetch once up front so a misconfigured IdP
         # surfaces its real error; the result is cached for the SDK's calls.
