@@ -29,6 +29,7 @@ python wif_client.py
 | `EXTERNAL_RESOURCE_PARAM` | `resource` (default) or `scope` — form field carrying the resource id |
 | `DATABRICKS_HOST` | Workspace URL |
 | `DATABRICKS_CLIENT_ID` | Service principal application id owning the federation policy. Blank = account-wide federation |
+| `DATABRICKS_SCOPES` | Scopes for the Databricks token (space or comma separated). Passed to `WorkspaceClient(scopes=...)`; default `all-apis` |
 
 The external client id deliberately uses `EXTERNAL_*` names so it never
 collides with the SDK's own `DATABRICKS_CLIENT_ID`.

@@ -20,6 +20,9 @@ Environment:
   DATABRICKS_CLIENT_ID      (optional) service principal application id that
                             owns the federation policy. Leave unset for
                             account-wide token federation.
+  DATABRICKS_SCOPES         (optional) space or comma separated scopes for the
+                            Databricks token, e.g. "sql iam.current-user:read".
+                            Defaults to "all-apis".
 """
 
 import logging
@@ -36,13 +39,13 @@ from databricks.sdk.credentials_provider import (
 )
 from databricks.sdk.oidc import IdToken, IdTokenSource
 from dotenv import load_dotenv
-#from http.client import HTTPConnection
-#import six
+from http.client import HTTPConnection
+import six
 
 logger = logging.getLogger(__name__)
 
-#HTTPConnection.debuglevel = 1
-#six.moves.http_client.HTTPConnection.debuglevel = 1
+HTTPConnection.debuglevel = 1
+six.moves.http_client.HTTPConnection.debuglevel = 1
 
 # Refresh the external token this many seconds before it expires.
 _EXPIRY_SKEW_SECONDS = 60
@@ -54,6 +57,8 @@ def _require(name: str) -> str:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
 
+def _optional(name: str) -> Optional[str]:
+    return os.environ.get(name, "").strip() or None
 
 class ClientCredentialsIdTokenSource(IdTokenSource):
     """IdTokenSource that obtains the subject token from an external OAuth
@@ -113,7 +118,32 @@ class ClientCredentialsIdTokenSource(IdTokenSource):
 
 def external_wif_strategy(id_token_source: IdTokenSource):
     """Build a CredentialsStrategy that federates the external token into
-    Databricks via oidc_credentials_provider."""
+    Databricks via oidc_credentials_provider.
+
+    The Databricks token is requested with the scopes from the client config
+    (``WorkspaceClient(scopes=[...])`` or a profile's ``scopes``). The SDK
+    falls back to the broad ``all-apis`` scope when none are configured.
+    """
+
+    @credentials_strategy("external-client-credentials-wif", ["host"])
+    def strategy(cfg):
+        if cfg.scopes:
+            logger.debug("Requesting Databricks token with scopes: %s", cfg.get_scopes_as_string())
+        else:
+            logger.warning(
+                "No scopes configured; requesting Databricks token with the default %r scope",
+                cfg.get_scopes_as_string(),
+            )
+        # oidc_credentials_provider swallows token-source errors and returns
+        # None ("not configured"). Fetch once up front so a misconfigured IdP
+        # surfaces its real error; the result is cached for the SDK's calls.
+        id_token_source.id_token()
+        # Sends cfg.get_scopes_as_string() as the token exchange "scope".
+        return oidc_credentials_provider(cfg, id_token_source)
+
+    return strategy
+
+
 
     @credentials_strategy("external-client-credentials-wif", ["host"])
     def strategy(cfg):
@@ -136,9 +166,13 @@ def build_workspace_client() -> WorkspaceClient:
     )
     # client_id is the Databricks service principal for WIF. Passed explicitly
     # so it is never confused with the external EXTERNAL_CLIENT_ID.
+    # The SDK has no environment variable for scopes, so read our own. Space or
+    # comma separated; the SDK de-duplicates and sorts them.
+    scopes = _optional("DATABRICKS_SCOPES")
     return WorkspaceClient(
         host=_require("DATABRICKS_HOST"),
         client_id=os.environ.get("DATABRICKS_CLIENT_ID", "").strip() or None,
+        scopes=scopes.replace(",", " ").split() if scopes else None,
         credentials_strategy=external_wif_strategy(token_source),
     )
 
