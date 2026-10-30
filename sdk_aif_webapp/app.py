@@ -74,7 +74,6 @@ RESOURCE_PARAMS = (
 )
 
 DATABRICKS_HOST = _require("DATABRICKS_HOST").rstrip("/")
-DATABRICKS_CLIENT_ID = _optional("DATABRICKS_CLIENT_ID")
 _scopes = _optional("DATABRICKS_SCOPES")
 DATABRICKS_SCOPES = _scopes.replace(",", " ").split() if _scopes else None
 
@@ -137,7 +136,7 @@ class UserTokenSource(IdTokenSource):
             return IdToken(jwt=self._token)
 
 
-def external_wif_strategy(id_token_source: IdTokenSource):
+def external_aif_strategy(id_token_source: IdTokenSource):
     """Build a CredentialsStrategy that federates the user's external token
     into Databricks via oidc_credentials_provider.
 
@@ -146,7 +145,7 @@ def external_wif_strategy(id_token_source: IdTokenSource):
     ``all-apis`` scope when none are configured.
     """
 
-    @credentials_strategy("external-authorization-code-wif", ["host"])
+    @credentials_strategy("external-authorization-code-aif", ["host"])
     def strategy(cfg):
         if cfg.scopes:
             logger.debug("Requesting Databricks token with scopes: %s", cfg.get_scopes_as_string())
@@ -244,9 +243,8 @@ def callback():
     try:
         client = WorkspaceClient(
             host=DATABRICKS_HOST,
-            client_id=DATABRICKS_CLIENT_ID,
             scopes=DATABRICKS_SCOPES,
-            credentials_strategy=external_wif_strategy(token_source),
+            credentials_strategy=external_aif_strategy(token_source),
         )
     except Exception as e:
         return jsonify(stage="databricks-client", error=str(e)), 502

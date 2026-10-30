@@ -34,9 +34,6 @@ Environment:
   EXTERNAL_LOGIN_TIMEOUT    (optional) seconds to wait for the browser login,
                             default 300
   DATABRICKS_HOST           Databricks workspace URL
-  DATABRICKS_CLIENT_ID      (optional) service principal application id that
-                            owns the federation policy. Leave unset for
-                            account-wide token federation.
   DATABRICKS_SCOPES         (optional) space or comma separated scopes for the
                             Databricks token. Defaults to "all-apis".
 """
@@ -323,7 +320,6 @@ def build_workspace_client() -> WorkspaceClient:
     # so it is never confused with the external EXTERNAL_CLIENT_ID.
     return WorkspaceClient(
         host=_require("DATABRICKS_HOST"),
-        client_id=_optional("DATABRICKS_CLIENT_ID"),
         scopes=scopes.replace(",", " ").split() if scopes else None,
         credentials_strategy=external_aif_strategy(token_source),
     )

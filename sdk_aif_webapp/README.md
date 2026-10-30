@@ -1,6 +1,6 @@
 # Databricks SDK token federation — web app (authorization code flow)
 
-Web app version of [`sdk_wif/wif_authcode_client.py`](../sdk_wif/wif_authcode_client.py).
+Web app version of [`sdk_wif/aif_authcode_client.py`](../sdk_wif/aif_authcode_client.py).
 Users log in at an external IdP as a **public client** (authorization code +
 PKCE), and the app calls Databricks **as that user** through the Databricks
 Python SDK.
@@ -36,7 +36,6 @@ python app.py          # http://localhost:5000
 | `EXTERNAL_SUBJECT_TOKEN` | `access_token` (default) or `id_token` — which token Databricks receives |
 | `EXTERNAL_RESOURCE_ID` / `EXTERNAL_RESOURCE_PARAM` | Optional resource/audience (e.g. `audience` for Auth0) |
 | `DATABRICKS_HOST` | Workspace URL |
-| `DATABRICKS_CLIENT_ID` | Service principal application id owning the federation policy. Blank = account-wide federation |
 | `DATABRICKS_SCOPES` | Scopes for the Databricks token (space or comma separated); default `all-apis` |
 
 ## How sessions work
